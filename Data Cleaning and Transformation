@@ -42,3 +42,36 @@ SELECT
 	  ELSE cancellation
 	  END AS cancellation
 FROM pizza_runner.runner_orders;
+
+--pizza_recipes
+SELECT		
+   p.pizza_id,
+   TRIM(t.value) AS topping_id,
+   pt.topping_name
+INTO cleaned_toppings
+FROM 
+     pizza_runner.pizza_recipes as p
+     CROSS APPLY string_split(p.toppings, ',') as t
+     JOIN pizza_toppings as pt
+     ON TRIM(t.value) = pt.topping_id ;
+ 
+ALTER TABLE #cleaned_customer_orders
+ADD record_id INT IDENTITY(1,1);
+
+-- to generate extra table
+SELECT		
+	c.record_id,
+	TRIM(e.value) AS topping_id
+INTO #extras
+FROM 
+	#cleaned_customer_orders as c
+	CROSS APPLY string_split(c.extras, ',') as e;
+
+-- to generate exclusions table
+SELECT		
+	c.record_id,
+	TRIM(e.value) AS topping_id
+INTO #exclusions
+FROM 
+	#cleaned_customer_orders as c
+	CROSS APPLY string_split(c.exclusions, ',') as e;
